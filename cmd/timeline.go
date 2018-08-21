@@ -29,7 +29,8 @@ import (
 // timelineCmd represents the timeline command
 var timelineCmd = &cobra.Command{
 	Use:   "timeline",
-	Short: "A brief description of your command",
+	Aliases: []string { "i" },
+	Short: "Display timeline view",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

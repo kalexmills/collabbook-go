@@ -29,7 +29,8 @@ import (
 // starCmd represents the star command
 var starCmd = &cobra.Command{
 	Use:   "star",
-	Short: "A brief description of your command",
+	Aliases: []string { "s" },
+	Short: "Star/unstar item",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

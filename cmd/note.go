@@ -29,7 +29,8 @@ import (
 // noteCmd represents the note command
 var noteCmd = &cobra.Command{
 	Use:   "note",
-	Short: "A brief description of your command",
+	Aliases: []string { "n" },
+	Short: "Create note",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
