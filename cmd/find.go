@@ -28,9 +28,10 @@ import (
 
 // findCmd represents the find command
 var findCmd = &cobra.Command{
-	Use:   "find",
-	Aliases: []string { "f" },
-	Short: "Search for items",
+	Use:     "find",
+	Aliases: []string{"f"},
+	Short:   "Search for items",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

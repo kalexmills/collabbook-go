@@ -24,28 +24,69 @@ import (
 	"fmt"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/kalexmills/collabbook-go/data"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io/ioutil"
+	"path/filepath"
+	"github.com/kalexmills/collabbook-go/view"
 )
 
 var cfgFile string
+
+// itemstore is a global repo that's typically loaded by the root command and made available to other commands.
+var itemstore *data.Repo
+
+var cbPath string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cb",
 	Short: "Tasks, boards & notes for the command-line habitat",
+	DisableFlagsInUseLine: true,
 	Long: `
-   A longer description that spans multiple lines and likely contains
-   examples and usage of using your application. For example:
-
-   Cobra is a CLI library for Go that empowers applications.
-   This application is a tool to generate the needed files
-   to quickly create a Cobra application.
+   TODO: Long description.
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	// PersistentPreRun crawls up the working directory, checking for a .collabbook file and loading it when it finds it.
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		wd, err := os.Getwd()
+
+		for !os.IsNotExist(err) && !os.IsPermission(err) {
+			cbPath = filepath.Join(wd, ".collabbook")
+			var info os.FileInfo
+			info, err = os.Lstat(cbPath)
+
+			if err == nil && info.Mode().IsRegular() {
+				var bytes []byte
+				bytes, err = ioutil.ReadFile(cbPath)
+
+				itemstore = data.NewRepo()
+				err = itemstore.UnmarshalText(bytes)
+				if err != nil {
+					fmt.Printf("Corrupted .collabbook file found at " + filepath.Join(wd, ".collabbook"))
+					os.Exit(1)
+				}
+				return
+			}
+
+			wd, _ = filepath.Split(wd)
+			wd = filepath.Clean(wd)
+			info, err = os.Lstat(wd)
+
+			if wd == filepath.VolumeName(wd)+string(filepath.Separator) {
+				fmt.Printf("Could not find .collabbook file in any ancestor directory. Stopping at filesystem boundary.")
+				os.Exit(1)
+			}
+		}
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		if bytes, err := itemstore.MarshalText(); err == nil {
+			ioutil.WriteFile(cbPath, bytes, 0644)
+		} else {
+			view.Failure(":-O", "Could not write file because:\n\t" + err.Error())
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -59,11 +100,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.collabbook.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -79,9 +115,8 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".collabbook-go" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".collabbook")
+		viper.SetConfigName(".collabbook.conf")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

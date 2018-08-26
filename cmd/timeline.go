@@ -28,9 +28,10 @@ import (
 
 // timelineCmd represents the timeline command
 var timelineCmd = &cobra.Command{
-	Use:   "timeline",
-	Aliases: []string { "i" },
-	Short: "Display timeline view",
+	Use:     "timeline",
+	Aliases: []string{"i"},
+	Short:   "Display timeline view",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

@@ -21,37 +21,33 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/kalexmills/collabbook-go/data"
 )
 
 // taskCmd represents the task command
 var taskCmd = &cobra.Command{
-	Use:   "task",
-	Aliases: []string { "t" },
-	Short: "Create task",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:     "task",
+	Aliases: []string{"t"},
+	Short:   "Create task",
+	DisableFlagsInUseLine: true,
+	Long: `
+Creates a new task, optionally assigning it to boards. Any argument starting
+with either '@' or '#' are interpreted as the names of boards to which the
+task will be added. Boards which do not already exist are created.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("task called")
-	},
+Examples:
+
+   cb task A new task
+   cb task #1 #2 A task which is on boards 1 and 2
+   cb task "#Name has spaces" A task on a board named "Name has spaces"  
+`,
+	Args: cobra.MinimumNArgs(1),
+	Run: ItemCreate("task", func (desc string, boards ...string) (*data.Item) {
+		return itemstore.MakeTask(desc, boards...)
+	}),
 }
 
 func init() {
 	rootCmd.AddCommand(taskCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// taskCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// taskCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

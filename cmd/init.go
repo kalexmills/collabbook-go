@@ -22,15 +22,16 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/kalexmills/collabbook-go/data"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
 )
 
-// starCmd represents the star command
-var starCmd = &cobra.Command{
-	Use:     "star",
-	Aliases: []string{"s"},
-	Short:   "Star/unstar item",
+// initCmd represents the init command
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Creates a new collabbook",
 	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -38,21 +39,61 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+
+	// PersistentPreRun acts as a noop to override the default implementation
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		itemstore = data.NewRepo()
+	},
+	// Run creates a new collabbook file in the present directory.
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("star called")
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("Could not obtain working directory:\n\t" + err.Error())
+			os.Exit(1)
+		}
+
+		path := filepath.Join(wd, ".collabbook")
+
+		file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+		if err != nil {
+			if os.IsExist(err) {
+				fmt.Printf("Collabbook is already initialized at " + path)
+				os.Exit(1)
+			}
+			if os.IsPermission(err) {
+				fmt.Printf("Collabbook does not have permission to create a new file at " + path)
+				os.Exit(1)
+			}
+		}
+		defer func() {
+			file.Close()
+		}()
+
+		text, err := itemstore.MarshalText()
+		_, err = file.Write(text)
+
+		if err != nil {
+			err = os.Remove(path)
+			if err != nil {
+				fmt.Printf("Write failed, and cleanup was unsuccessful. " + path + " may contain junk.")
+				os.Exit(1)
+			}
+			fmt.Printf("Write failed: " + err.Error())
+			os.Exit(1)
+		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(starCmd)
+	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// starCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// starCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

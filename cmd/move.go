@@ -28,9 +28,10 @@ import (
 
 // moveCmd represents the move command
 var moveCmd = &cobra.Command{
-	Use:   "move",
-	Aliases: []string { "m" },
-	Short: "Move item between boards",
+	Use:     "move",
+	Aliases: []string{"m"},
+	Short:   "Move item between boards",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

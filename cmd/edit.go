@@ -28,9 +28,10 @@ import (
 
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
-	Use:   "edit",
-	Aliases: []string { "e" },
-	Short: "Edit item description",
+	Use:     "edit",
+	Aliases: []string{"e"},
+	Short:   "Edit item description",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

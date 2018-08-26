@@ -21,16 +21,18 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/kalexmills/collabbook-go/data"
+	"github.com/kalexmills/collabbook-go/view"
 	"github.com/spf13/cobra"
+	"fmt"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Aliases: []string { "l" },
-	Short: "List items by attributes",
+	Use:     "list",
+	Aliases: []string{"l"},
+	Short:   "List items by attributes",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -38,20 +40,29 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("list called")
+		view.PrintSections(itemstore, func() []view.Section {
+			boards := itemstore.Boards()
+
+			sections := make([]view.Section, len(boards)-1)
+
+			i := 1
+			for j := 0; j < len(boards); j += 1 {
+				if boards[j] == data.ArchiveBoard {
+					continue
+				}
+				if boards[j] == data.DefaultBoard {
+					sections[0] = view.Section{&boards[j], itemstore.IdsInBoard(boards[j])}
+					continue
+				}
+				sections[i] = view.Section{&boards[j], itemstore.IdsInBoard(boards[j])}
+			}
+
+			return sections
+		})
+		fmt.Println()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

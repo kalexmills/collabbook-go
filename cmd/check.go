@@ -28,9 +28,10 @@ import (
 
 // checkCmd represents the check command
 var checkCmd = &cobra.Command{
-	Use:   "check",
-	Aliases: []string { "c" },
-	Short: "Check/uncheck task",
+	Use:     "check",
+	Aliases: []string{"c"},
+	Short:   "Check/uncheck task",
+	DisableFlagsInUseLine: true,
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
